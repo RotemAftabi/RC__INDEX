@@ -3,6 +3,7 @@ from CoverTree import CoverTree
 import numpy as np
 import pandas as pd
 import time
+from scipy.spatial import distance
 
 # Load the dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
@@ -10,10 +11,14 @@ columns = ["age", "workclass", "fnlwgt", "education", "education_num", "marital_
            "occupation", "relationship", "race", "sex", "capital_gain", "capital_loss",
            "hours_per_week", "native_country", "income"]
 data = pd.read_csv(url, header=None, names=columns, skipinitialspace=True)
+df = pd.DataFrame(data)
 
 # Select only numeric columns
 numeric_columns = ["age", "fnlwgt", "education_num", "capital_gain", "capital_loss", "hours_per_week"]
 numeric_data = data[numeric_columns].values
+randomly_chosen_columns = np.random.choice(numeric_columns, size=1, replace=False)
+Adist = df[randomly_chosen_columns]
+distances = distance.pdist(Adist, metric='euclidean')
 
 
 class RCIndex:
@@ -39,8 +44,6 @@ class RCIndex:
         start_cover_time = time.time()
         print("Building CoverTree (this may take time)...")
         self.cover_tree = CoverTree(data, b) if len(data) > 1 else None
-        print(f"CoverTree built in {time.time() - start_cover_time:.2f} seconds")
-
         print(f"Total RC-Index build time: {time.time() - start_time:.2f} seconds")
 
     def query(self, query_column, query_range, k, delta):
@@ -104,8 +107,7 @@ class RCIndex:
 # Example usage:
 if __name__ == "__main__":
     # Initialize RC-Index with numeric data
-    print("Inside main")
-    sample_data = numeric_data[:10000]  # נשתמש רק ב-10,000 שורות
+    sample_data = numeric_data[:1000]
     rc_index = RCIndex(sample_data)
 
     # Get user input for query

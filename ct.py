@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import distance
 
 class CoverTree:
-    def __init__(self, data, b=2.0, Adist = None):
+    def __init__(self, data, b=2.0):
         """
         Initializes the Cover Tree with hierarchical levels based on distances.
         Args:
@@ -11,7 +11,6 @@ class CoverTree:
         """
         self.data = np.array(data)
         self.b = b
-        self.Adist =Adist
         self.layers = self._build_tree()
         self.parent_child_map = {}  # Explicit parent-child mapping
 
@@ -29,25 +28,26 @@ class CoverTree:
         if len(self.data) == 0:
             return {}, {}
 
-        centroid = np.mean(self.data[:, self.Adist], axis=0)
+        centroid = np.mean(self.data, axis=0)
 
         # Compute min distance to determine l_min
 
         min_dist = min(
-            distance.euclidean(self.data[i, self.Adist].flatten(), self.data[j, self.Adist].flatten())
+            distance.euclidean(self.data[i], self.data[j])
             for i in range(len(self.data)) for j in range(i + 1, len(self.data))
         ) if len(self.data) > 1 else 1.0
         # Compute l_max and l_min
         l_min = int(np.floor(np.log(min_dist) / np.log(self.b)))
         # Initialize levels
-        layers = {l: [] for l in range(0, -(l_min - 1), -1)}  # יורד מ-l_max ל-l_min
+        levels = {l: [] for l in range(0, -(l_min - 1), -1)}  # יורד מ-l_max ל-l_min
         self.parent_child_map = {}
 
-        distances = np.array([distance.euclidean(row[self.Adist].flatten(), centroid.flatten()) for row in self.data])
+        distances = np.array([distance.euclidean(row, centroid) for row in self.data])
         sorted_indices = np.argsort(distances)
         sorted_data = self.data[sorted_indices]
-        max_distance_idx = np.argmax(distances)
-        layers[0] = [centroid]
+
+        max_distance_idx = np.argmax(distances)  # farest point
+        levels[0] = [sorted_data[max_distance_idx]]
         current_layer = sorted_data  # המתחילים הם רק האלמנט הזה
 
         # Build hierarchical layers (top-down)
@@ -55,22 +55,22 @@ class CoverTree:
             threshold = self.b ** l
             new_layer = []
 
-            for row in layers[l]:
+            for row in levels[l]:
                 added = False
                 for child in current_layer:
-                    print(child)
-                    print(distance.euclidean(row.flatten(), child.flatten()))
-                    if distance.euclidean(row[self.Adist].flatten(), child[self.Adist].flatten()) <= threshold:
+                    if distance.euclidean(row, child) <= threshold:
                         self.parent_child_map.setdefault(tuple(child), []).append(tuple(row))  # קשר הורה-ילד
-                        new_layer.append(row)
                         is_added = True
                         break
 
+                if not added:
+                    new_layer.append(row)
+                    self.parent_child_map.setdefault(tuple(row), [])
 
-                layers[l] = new_layer
+                levels[l] = new_layer
                 current_layer = new_layer  # ממשיכים לרמה הבאה
 
-        return layers
+        return levels
 
     def extract_candidates(self, k, delta):
         """
@@ -86,11 +86,7 @@ class CoverTree:
         if len(self.data) == 0:
             print("⚠️ Warning: CoverTree has no data!")
             return []
-            # Check if the layers dictionary is empty
 
-        if not self.layers:
-            print("⚠️ Warning: CoverTree has no layers!")
-            return []
 
         # Find the first level where there are at least k candidates
         k_level = None
@@ -102,7 +98,7 @@ class CoverTree:
 
         #  אם לא נמצאה רמה עם לפחות k מועמדים, נבחר את הרמה עם הכי הרבה מועמדים
         if k_level is None:
-            k_level = max(self.layers.keys(), key=lambda l: len(self.layers[l]))
+            k_level = max(self.layers.keys(), key=lambda l: len(self.layers[l]))  # רמה עם הכי הרבה מועמדים
             print(f"⚠️ Warning: No level had at least {k} candidates. Using most populated level {k_level} instead.")
 
         # מציאת מועמדים מהשכבות שמתחת לרמת k-level

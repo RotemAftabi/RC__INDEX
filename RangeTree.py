@@ -23,42 +23,43 @@ class RangeTree:
         print(f"RangeTree built in {time.time() - start_time:.2f} seconds")
 
     def _build_tree(self, data, b):
-        start_time = time.time()
-        print(f"Building tree with {len(data)} rows...")
-
         if len(data) == 0:
             return None
+
         if len(data) == 1:
-            return RangeTreeNode(data, b)
-        if len(data) > 5000:
-            print(f"Warning: Large node detected ({len(data)} rows). Consider optimization!")
+            node = RangeTreeNode(data, b)
+            node.median = data[0]
+            return node
+
+        if len(data) < 50:
+            node = RangeTreeNode(data, b)
+            node.median = data[len(data) // 2]
+            return node
 
         sorted_indices = np.argsort(data[:, 0])
         sorted_data = data[sorted_indices]
+
         median_index = len(sorted_data) // 2
         median = sorted_data[median_index]
-
-        print(f"Splitting at median value: {median[0]} (size={len(sorted_data)})")
 
         node = RangeTreeNode(sorted_data, b)
         node.median = median
 
-        left_start = time.time()
         node.left = self._build_tree(sorted_data[:median_index], b)
-        print(f"Left subtree built in {time.time() - left_start:.4f} seconds")
-
-        right_start = time.time()
         node.right = self._build_tree(sorted_data[median_index:], b)
-        print(f"Right subtree built in {time.time() - right_start:.4f} seconds")
-
-        print(f"Tree node built in {time.time() - start_time:.4f} seconds")
         return node
 
     def range_query(self, node, query_range):
         if node is None:
             return []
+
+        if node.median is None:
+            print("Warning: Encountered node with no median!")
+            return []
+
         min_val, max_val = query_range
         median_value = node.median[0]
+
         if max_val < median_value:
             return self.range_query(node.left, query_range)
         elif min_val > median_value:
