@@ -15,6 +15,10 @@ class CoverTree:
         self.b = b
         self.adist = adist
         self.layers = self.build_tree(max_attrib)
+        if not self.layers:
+            print("⚠️ Warning: CoverTree built with empty layers!")
+        else:
+            print(f"✅ CoverTree built with {len(self.layers)} levels")
 
     def build_tree(self, max_attrib):
         """
