@@ -36,10 +36,6 @@ class CoverTree:
         # Compute min distance to determine l_min
         max_dist = distance.euclidean(self.data[len(self.data) - 1, self.adist].flatten(),
                                       self.data[0, self.adist].flatten()) if len(self.data) > 1 else 1.0
-        """ max_dist = max(
-            distance.euclidean(self.data[i, self.adist].flatten(), self.data[j, self.adist].flatten())
-            for i in range(len(self.data)) for j in range(i + 1, len(self.data))
-        ) if len(self.data) > 1 else 1.0"""
         if (max_dist == 0):
             layers = {}
             layers[0] = self.data
@@ -47,11 +43,11 @@ class CoverTree:
         # Compute l_max and l_min
         l_max = int(math.ceil(math.log(max_dist, self.b)))
         # Initialize levels
-        layers = {l: [] for l in range(0, -(l_max) - 2, -1)}  # יורד מ-l_max ל-l_min
+        layers = {l: [] for l in range(0, -(l_max) - 2, -1)}
         layers[0] = [centroid]
         current_layer = layers[0]
         # Build hierarchical layers (top-down)
-        for l in range(-1, -(l_max) - 1, -1):  # יורדים ברמות
+        for l in range(-1, -(l_max) - 1, -1):
             if (l == -1):
                 threshold = self.b ** (l_max + l - 1)
             else:
