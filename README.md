@@ -58,47 +58,33 @@ This ensures that the selected diverse subset maintains meaningful spatial separ
 
 This implementation follows the MAXSUM diversification criterion, which maximizes the sum of pairwise distances among selected items to ensure a diverse subset of results.
 
-1. **RC-Index Construction**
 
-   1. Construct Range Tree:
-       Sort the dataset based on the chosen attribute.
-    
-       Recursively partition the data and build a hierarchical structure.
-    
-       Store Cover Trees at leaf nodes.
-
-   2. Construct Cover Trees within each partition:
-
-       Organize data hierarchically based on distance constraints.
-    
-       Assign each point to a level based on its proximity to cluster centers.
-
-2. **Query Execution (Algorithm 1: Query Evaluation)**
-
-   1. Range Query Extraction (Algorithm 3):
-
-       Retrieve relevant Cover Trees using the Range Tree.
-    
-       If a node is fully within the query range, return its Cover Tree.
-    
-       If a node partially intersects, recursively explore its children.
-
-   2. Candidate Extraction (Algorithm 2):
-
-       Extract a subset of candidate points from the Cover Trees.
-    
-       If a Cover Tree has fewer than k points, return all of them.
-    
-       Otherwise, extract candidates from a specific level, determined by delta.
-
-   3. Greedy Diversification (Algorithm 4):
-
-       Select a random initial candidate.
-    
-       Iteratively choose the most distant candidate until k diverse results are obtained.
-    
 # Acknowledgments
 This project is based on the research presented in Wang et al., 2018, along with computational geometry concepts and open-source implementations.
 
+## RC-Index Construction
 
+1. **Construct Range Tree**:
+   - Sort the dataset based on the chosen attribute.
+   - Recursively partition the data and build a hierarchical structure.
+   - Store Cover Trees at leaf nodes.
 
+2. **Construct Cover Trees within each partition**:
+   - Organize data hierarchically based on distance constraints.
+   - Assign each point to a level based on its proximity to cluster centers.
+
+## Query Execution (Algorithm 1: Query Evaluation)
+
+1. **Range Query Extraction (Algorithm 3)**:
+   - Retrieve relevant Cover Trees using the Range Tree.
+   - If a node is fully within the query range, return its Cover Tree.
+   - If a node partially intersects, recursively explore its children.
+
+2. **Candidate Extraction (Algorithm 2)**:
+   - Extract a subset of candidate points from the Cover Trees.
+   - If a Cover Tree has fewer than `k` points, return all of them.
+   - Otherwise, extract candidates from a specific level, determined by delta.
+
+3. **Greedy Diversification (Algorithm 4)**:
+   - Select a random initial candidate.
+   - Iteratively choose the most distant candidate until `k` diverse results are obtained.
